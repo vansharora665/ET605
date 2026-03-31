@@ -859,9 +859,9 @@ def render_demo_page() -> str:
               `).join("")}
             </div>
             <div class="question-actions">
-              <button class="secondary" type="button" data-check-question="${question.question_id}">Check Answer</button>
               <button class="secondary" type="button" data-hint-question="${question.question_id}">${local.hintOpened ? "Hint Opened" : "Open Hint"}</button>
               <span class="chip">Attempts: ${local.attempts}</span>
+              <span class="chip">Selecting an option counts as an attempt</span>
             </div>
             ${hintHtml}
             ${feedbackHtml}
@@ -869,33 +869,30 @@ def render_demo_page() -> str:
         `;
       }).join("");
 
-      questionListEl.querySelectorAll("[data-check-question]").forEach((button) => {
-        button.addEventListener("click", () => checkAnswer(button.dataset.checkQuestion));
-      });
       questionListEl.querySelectorAll("[data-hint-question]").forEach((button) => {
         button.addEventListener("click", () => openHint(button.dataset.hintQuestion));
       });
       questionListEl.querySelectorAll("input[type=radio]").forEach((input) => {
         input.addEventListener("change", () => {
-          const local = state.questionState[input.name];
-          local.selectedOptionIndex = Number(input.value);
+          selectAnswer(input.name, Number(input.value));
         });
       });
     }
 
-    function checkAnswer(questionId) {
+    function selectAnswer(questionId, optionIndex) {
       const courseQuestion = state.activeCourse.questions.find((question) => question.question_id === questionId);
       const local = state.questionState[questionId];
-      if (local.selectedOptionIndex === null) {
-        setStatus("Choose an option before checking the answer.", "error");
-        return;
-      }
-
+      local.selectedOptionIndex = optionIndex;
       local.attempts += 1;
       local.lastCorrect = local.selectedOptionIndex === courseQuestion.correct_option_index;
       renderChapter();
       updateTimer();
-      setStatus(local.lastCorrect ? "Nice. That answer is correct." : "Answer checked. The student can retry before ending the chapter.", local.lastCorrect ? "ok" : "");
+      setStatus(
+        local.lastCorrect
+          ? "Nice. That answer is correct and has been counted immediately."
+          : "Answer recorded. The student can change the option to retry before ending the chapter.",
+        local.lastCorrect ? "ok" : ""
+      );
     }
 
     function openHint(questionId) {

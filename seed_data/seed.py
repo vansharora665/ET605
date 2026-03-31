@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from app.db.session import SessionLocal, init_db
 from app.models import Chapter, Subtopic
 from app.services.catalog import load_catalog
@@ -50,6 +52,14 @@ def seed() -> None:
 
         db.commit()
     print("Seed data loaded successfully.")
+
+
+def ensure_seed_data() -> None:
+    init_db()
+    with SessionLocal() as db:
+        has_chapters = db.scalar(select(Chapter.chapter_id).limit(1)) is not None
+    if not has_chapters:
+        seed()
 
 
 if __name__ == "__main__":

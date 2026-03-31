@@ -17,6 +17,7 @@ from app.core.logging import configure_logging
 from app.db.session import init_db
 from app.web.explainer_page import render_explainer_page
 from app.web.demo_page import render_demo_page
+from seed_data.seed import ensure_seed_data
 
 settings = get_settings()
 configure_logging(settings.log_level)
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    ensure_seed_data()
     logger.info("Database initialized")
     yield
 
