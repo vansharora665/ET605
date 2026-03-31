@@ -376,6 +376,7 @@ def test_session_exit_allows_zero_attempt_payload_and_uses_exit_endpoint(client)
 
     assert response.status_code == 200
     body = response.json()
+    assert body["performance_score"] == 0.0
     assert body["team_api_submission"]["payload"]["session_status"] == "exited_midway"
     assert body["team_api_submission"]["payload"]["questions_attempted"] == 0
     assert body["team_api_submission"]["payload"]["time_spent_seconds"] > 0

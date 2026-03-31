@@ -57,7 +57,11 @@ def compute_performance_score(
         components["accuracy"] = interaction.correct_answers / max(attempted, 1)
         applied_weights["accuracy"] = weights["accuracy"]
 
-    if interaction.hints_used is not None and interaction.total_hints is not None:
+    if (
+        interaction.hints_used is not None
+        and interaction.total_hints is not None
+        and attempted
+    ):
         if interaction.total_hints == 0:
             components["hint_independence"] = 1.0
         else:
