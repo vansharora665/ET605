@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "student_id": "student_demo_02",
+  "session_id": "sess_alg_demo_01",
+  "chapter_id": "grade7_algebraic_expressions",
+  "timestamp": "2026-03-31T09:25:00Z",
+  "session_status": "completed",
+  "correct_answers": 6,
+  "wrong_answers": 4,
+  "questions_attempted": 10,
+  "total_questions": 12,
+  "hints_used": 2,
+  "total_hints_embedded": 8,
+  "retry_count": 2,
+  "time_spent_seconds": 980,
+  "topic_completion_ratio": 0.88
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "student_id": "student_demo_01",
+  "session_id": "sess_frac_demo_01",
+  "chapter_id": "grade6_fractions",
+  "timestamp": "2026-03-31T09:00:00Z",
+  "session_status": "completed",
+  "correct_answers": 8,
+  "wrong_answers": 2,
+  "questions_attempted": 10,
+  "total_questions": 10,
+  "hints_used": 1,
+  "total_hints_embedded": 6,
+  "retry_count": 1,
+  "time_spent_seconds": 650,
+  "topic_completion_ratio": 1.0
+}

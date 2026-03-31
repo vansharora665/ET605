@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "grade": 8,
+  "chapter_name": "Linear Equations",
+  "chapter_id": "grade8_linear_equations",
+  "chapter_url": "/grade8/linear-equations",
+  "chapter_difficulty": 0.74,
+  "expected_completion_time_seconds": 1200,
+  "subtopics": [
+    {
+      "subtopic_id": "grade8_linear_equations__solving_one_step_equations",
+      "name": "Solving One-Step Equations",
+      "difficulty": 0.62
+    },
+    {
+      "subtopic_id": "grade8_linear_equations__solving_multi_step_equations",
+      "name": "Solving Multi-Step Equations",
+      "difficulty": 0.82
+    }
+  ],
+  "prerequisites": [
+    "grade7_algebraic_expressions",
+    "grade6_fractions"
+  ]
+}

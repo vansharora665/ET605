@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "grade": 6,
+  "chapter_name": "Fractions",
+  "chapter_id": "grade6_fractions",
+  "chapter_url": "/grade6/fractions",
+  "chapter_difficulty": 0.35,
+  "expected_completion_time_seconds": 780,
+  "subtopics": [
+    {
+      "subtopic_id": "grade6_fractions__equivalent_fractions",
+      "name": "Equivalent Fractions",
+      "difficulty": 0.3
+    },
+    {
+      "subtopic_id": "grade6_fractions__comparing_fractions",
+      "name": "Comparing Fractions",
+      "difficulty": 0.38
+    }
+  ],
+  "prerequisites": []
+}

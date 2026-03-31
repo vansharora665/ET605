@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "student_id": "student_demo_03",
+  "session_id": "sess_linear_demo_01",
+  "chapter_id": "grade8_linear_equations",
+  "timestamp": "2026-03-31T10:15:00Z",
+  "session_status": "abandoned",
+  "correct_answers": 4,
+  "wrong_answers": 6,
+  "questions_attempted": 10,
+  "total_questions": 12,
+  "hints_used": 4,
+  "total_hints_embedded": 8,
+  "retry_count": 3,
+  "time_spent_seconds": 1500,
+  "topic_completion_ratio": 0.52,
+  "subtopic_metrics": [
+    {
+      "subtopic_id": "grade8_linear_equations__solving_one_step_equations",
+      "questions_attempted": 4,
+      "correct_answers": 2,
+      "wrong_answers": 2,
+      "hints_used": 1,
+      "retry_count": 1,
+      "time_spent_seconds": 300
+    },
+    {
+      "subtopic_id": "grade8_linear_equations__solving_multi_step_equations",
+      "questions_attempted": 6,
+      "correct_answers": 2,
+      "wrong_answers": 4,
+      "hints_used": 3,
+      "retry_count": 2,
+      "time_spent_seconds": 700
+    }
+  ]
+}

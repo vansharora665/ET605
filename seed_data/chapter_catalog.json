@@ -1,0 +1,222 @@
+[
+  {
+    "chapter_id": "grade6_fractions",
+    "schema_version": "1.0",
+    "grade": 6,
+    "chapter_name": "Fractions",
+    "chapter_url": "/grade6/fractions",
+    "description": "Build the basics of fractions through equivalent forms, comparison, and simple operations.",
+    "learning_goal": "Students should confidently compare and simplify fractions.",
+    "difficulty": 0.35,
+    "expected_completion_time": 780,
+    "question_count": 3,
+    "total_hints_embedded": 3,
+    "prerequisites": [],
+    "next_chapter_id": "grade7_ratio_and_proportion",
+    "subtopics": [
+      {
+        "subtopic_id": "grade6_fractions__equivalent_fractions",
+        "name": "Equivalent Fractions",
+        "difficulty": 0.3
+      },
+      {
+        "subtopic_id": "grade6_fractions__comparing_fractions",
+        "name": "Comparing Fractions",
+        "difficulty": 0.38
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "g6f_q1",
+        "subtopic_id": "grade6_fractions__equivalent_fractions",
+        "prompt": "Which fraction is equivalent to 1/2?",
+        "options": ["2/3", "3/6", "4/5", "5/8"],
+        "correct_option_index": 1,
+        "hint": "Multiply numerator and denominator by the same number."
+      },
+      {
+        "question_id": "g6f_q2",
+        "subtopic_id": "grade6_fractions__comparing_fractions",
+        "prompt": "Which is greater?",
+        "options": ["3/8", "1/2", "They are equal", "Cannot say"],
+        "correct_option_index": 1,
+        "hint": "Convert them to decimals or use the same denominator."
+      },
+      {
+        "question_id": "g6f_q3",
+        "subtopic_id": "grade6_fractions__equivalent_fractions",
+        "prompt": "Simplify 6/9.",
+        "options": ["3/5", "2/3", "6/3", "1/9"],
+        "correct_option_index": 1,
+        "hint": "Divide numerator and denominator by their greatest common factor."
+      }
+    ]
+  },
+  {
+    "chapter_id": "grade7_ratio_and_proportion",
+    "schema_version": "1.0",
+    "grade": 7,
+    "chapter_name": "Ratio and Proportion",
+    "chapter_url": "/grade7/ratio-and-proportion",
+    "description": "Use ratio language, simplify comparisons, and solve proportion-based word problems.",
+    "learning_goal": "Students should connect fraction thinking to proportional reasoning.",
+    "difficulty": 0.5,
+    "expected_completion_time": 900,
+    "question_count": 3,
+    "total_hints_embedded": 3,
+    "prerequisites": [
+      "grade6_fractions"
+    ],
+    "next_chapter_id": "grade7_algebraic_expressions",
+    "subtopics": [
+      {
+        "subtopic_id": "grade7_ratio_and_proportion__simplifying_ratios",
+        "name": "Simplifying Ratios",
+        "difficulty": 0.44
+      },
+      {
+        "subtopic_id": "grade7_ratio_and_proportion__word_problems",
+        "name": "Ratio Word Problems",
+        "difficulty": 0.56
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "g7r_q1",
+        "subtopic_id": "grade7_ratio_and_proportion__simplifying_ratios",
+        "prompt": "Simplify the ratio 12:18.",
+        "options": ["2:3", "3:2", "6:9", "4:5"],
+        "correct_option_index": 0,
+        "hint": "Divide both parts of the ratio by the same highest common factor."
+      },
+      {
+        "question_id": "g7r_q2",
+        "subtopic_id": "grade7_ratio_and_proportion__word_problems",
+        "prompt": "If 3 notebooks cost Rs 45, how much do 5 notebooks cost?",
+        "options": ["Rs 60", "Rs 65", "Rs 75", "Rs 90"],
+        "correct_option_index": 2,
+        "hint": "Find the cost of 1 notebook first."
+      },
+      {
+        "question_id": "g7r_q3",
+        "subtopic_id": "grade7_ratio_and_proportion__word_problems",
+        "prompt": "A map uses the scale 1 cm : 5 km. What distance does 4 cm represent?",
+        "options": ["9 km", "10 km", "20 km", "25 km"],
+        "correct_option_index": 2,
+        "hint": "Multiply the map distance by the scale factor."
+      }
+    ]
+  },
+  {
+    "chapter_id": "grade7_algebraic_expressions",
+    "schema_version": "1.0",
+    "grade": 7,
+    "chapter_name": "Algebraic Expressions",
+    "chapter_url": "/grade7/algebraic-expressions",
+    "description": "Translate words into algebra and simplify expressions with variables and constants.",
+    "learning_goal": "Students should identify terms and simplify basic algebraic expressions.",
+    "difficulty": 0.58,
+    "expected_completion_time": 960,
+    "question_count": 3,
+    "total_hints_embedded": 3,
+    "prerequisites": [
+      "grade6_fractions",
+      "grade7_ratio_and_proportion"
+    ],
+    "next_chapter_id": "grade8_linear_equations",
+    "subtopics": [
+      {
+        "subtopic_id": "grade7_algebraic_expressions__variables_and_constants",
+        "name": "Variables and Constants",
+        "difficulty": 0.45
+      },
+      {
+        "subtopic_id": "grade7_algebraic_expressions__simplifying_expressions",
+        "name": "Simplifying Expressions",
+        "difficulty": 0.6
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "g7a_q1",
+        "subtopic_id": "grade7_algebraic_expressions__variables_and_constants",
+        "prompt": "Which part of 5x + 3 is the variable?",
+        "options": ["5", "x", "+", "3"],
+        "correct_option_index": 1,
+        "hint": "The variable is the symbol whose value can change."
+      },
+      {
+        "question_id": "g7a_q2",
+        "subtopic_id": "grade7_algebraic_expressions__simplifying_expressions",
+        "prompt": "Simplify: 2x + 3x.",
+        "options": ["5x", "6x", "x5", "2x3x"],
+        "correct_option_index": 0,
+        "hint": "Add like terms by combining their coefficients."
+      },
+      {
+        "question_id": "g7a_q3",
+        "subtopic_id": "grade7_algebraic_expressions__simplifying_expressions",
+        "prompt": "Write an expression for “7 less than a number n”.",
+        "options": ["7 - n", "n - 7", "7n", "n + 7"],
+        "correct_option_index": 1,
+        "hint": "“Less than” means subtract from the number."
+      }
+    ]
+  },
+  {
+    "chapter_id": "grade8_linear_equations",
+    "schema_version": "1.0",
+    "grade": 8,
+    "chapter_name": "Linear Equations",
+    "chapter_url": "/grade8/linear-equations",
+    "description": "Solve one-step and two-step linear equations and interpret balance thinking.",
+    "learning_goal": "Students should solve basic linear equations accurately and independently.",
+    "difficulty": 0.74,
+    "expected_completion_time": 1200,
+    "question_count": 3,
+    "total_hints_embedded": 3,
+    "prerequisites": [
+      "grade7_algebraic_expressions",
+      "grade7_ratio_and_proportion"
+    ],
+    "next_chapter_id": null,
+    "subtopics": [
+      {
+        "subtopic_id": "grade8_linear_equations__solving_one_step_equations",
+        "name": "Solving One-Step Equations",
+        "difficulty": 0.62
+      },
+      {
+        "subtopic_id": "grade8_linear_equations__solving_multi_step_equations",
+        "name": "Solving Multi-Step Equations",
+        "difficulty": 0.82
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "g8l_q1",
+        "subtopic_id": "grade8_linear_equations__solving_one_step_equations",
+        "prompt": "Solve: x + 5 = 12",
+        "options": ["5", "6", "7", "17"],
+        "correct_option_index": 2,
+        "hint": "Undo the +5 by subtracting 5 from both sides."
+      },
+      {
+        "question_id": "g8l_q2",
+        "subtopic_id": "grade8_linear_equations__solving_multi_step_equations",
+        "prompt": "Solve: 2x = 18",
+        "options": ["8", "9", "16", "20"],
+        "correct_option_index": 1,
+        "hint": "Undo multiplication by dividing both sides by 2."
+      },
+      {
+        "question_id": "g8l_q3",
+        "subtopic_id": "grade8_linear_equations__solving_multi_step_equations",
+        "prompt": "Solve: x/3 + 2 = 5",
+        "options": ["3", "6", "9", "12"],
+        "correct_option_index": 2,
+        "hint": "Subtract 2 first, then multiply both sides by 3."
+      }
+    ]
+  }
+]

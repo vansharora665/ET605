@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "grade": 7,
+  "chapter_name": "Algebraic Expressions",
+  "chapter_id": "grade7_algebraic_expressions",
+  "chapter_url": "/grade7/algebraic-expressions",
+  "chapter_difficulty": 0.58,
+  "expected_completion_time_seconds": 960,
+  "subtopics": [
+    {
+      "subtopic_id": "grade7_algebraic_expressions__variables_and_constants",
+      "name": "Variables and Constants",
+      "difficulty": 0.45
+    },
+    {
+      "subtopic_id": "grade7_algebraic_expressions__simplifying_expressions",
+      "name": "Simplifying Expressions",
+      "difficulty": 0.6
+    }
+  ],
+  "prerequisites": [
+    "grade6_fractions"
+  ]
+}
