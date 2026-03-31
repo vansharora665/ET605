@@ -42,7 +42,9 @@ class StudentAnswerSubmission(BaseModel):
 
 class StudentSessionSubmission(BaseModel):
     student_id: str = Field(..., min_length=1)
+    session_id: Optional[str] = None
     chapter_id: str = Field(..., min_length=1)
+    session_started_at: Optional[datetime] = None
     time_spent_seconds: int = Field(..., ge=0)
     confidence_level: int = Field(default=3, ge=1, le=5)
     focus_level: int = Field(default=3, ge=1, le=5)

@@ -74,6 +74,43 @@ def post_student_session(
     )
 
 
+@router.post(
+    "/session/complete",
+    response_model=StudentSessionResponse,
+    summary="Submit a completed or manually ended student session using the refined session lifecycle endpoint",
+)
+def post_complete_student_session(
+    payload: StudentSessionSubmission,
+    db: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> StudentSessionResponse:
+    return submit_student_session(
+        db=db,
+        payload=payload,
+        scoring_profile=settings.scoring_profile,
+        threshold=settings.recommendation_threshold,
+    )
+
+
+@router.post(
+    "/session/exit",
+    response_model=StudentSessionResponse,
+    summary="Submit an exited-midway session for tab close, navigation away, or network recovery",
+)
+def post_exited_student_session(
+    payload: StudentSessionSubmission,
+    db: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> StudentSessionResponse:
+    return submit_student_session(
+        db=db,
+        payload=payload,
+        scoring_profile=settings.scoring_profile,
+        threshold=settings.recommendation_threshold,
+        force_ended_early=True,
+    )
+
+
 @router.get(
     "/admin/{student_id}",
     response_model=AdminDecisionSummary,

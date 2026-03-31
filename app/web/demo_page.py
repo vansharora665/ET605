@@ -581,7 +581,7 @@ def render_demo_page() -> str:
       <span class="eyebrow">Professor Presentation Demo</span>
       <h1>Student chapter experience + team API call + Merge System recommendation</h1>
       <p class="lead">
-        This page demonstrates the full end-to-end adaptive learning flow. A student attempts one of 4 dummy math chapters, the chapter module creates one final session-end API payload, and the Merge System returns the recommendation that decides whether the learner should advance or revisit prerequisites.
+        This page demonstrates the full end-to-end adaptive learning flow. A student attempts one of 4 dummy math chapters with 5 questions each, the chapter module creates one final session-end API payload, and the Merge System returns the recommendation that decides whether the learner should advance or revisit prerequisites.
       </p>
       <div class="hero-actions">
         <button class="primary" id="reloadCoursesBtn" type="button">Reload Demo Courses</button>
@@ -644,6 +644,7 @@ def render_demo_page() -> str:
               <div class="guide-item"><strong>Weak learner:</strong> use the weak preset, open hints, leave low confidence and low focus, then end the chapter to show remediation.</div>
               <div class="guide-item"><strong>Average learner:</strong> use the average preset to show a learner who is improving but may still stay on the same chapter or remain near threshold.</div>
               <div class="guide-item"><strong>Strong learner:</strong> use the strong preset to show clean advancement to the next configured chapter.</div>
+              <div class="guide-item"><strong>Session resilience:</strong> if the tab closes or the network drops, the demo now queues and retries an <code>exited_midway</code> payload automatically.</div>
             </div>
           </div>
         </div>
@@ -696,8 +697,8 @@ def render_demo_page() -> str:
         <div class="panel summary-card">
           <h3>Why This Demo Works</h3>
           <div id="guideOutcome">
-            <div class="guide-item"><strong>Student side:</strong> answer chapter questions, open hints, retry, or leave early.</div>
-            <div class="guide-item"><strong>Team side:</strong> the module sends one final session-end payload only.</div>
+            <div class="guide-item"><strong>Student side:</strong> answer 5 chapter questions, open hints, retry by changing answers, or leave early.</div>
+            <div class="guide-item"><strong>Team side:</strong> the module sends one final session-end payload only, using <code>/demo/session/complete</code> or <code>/demo/session/exit</code>.</div>
             <div class="guide-item"><strong>Merge side:</strong> scoring, prerequisite logic, and next-chapter prediction happen after submission.</div>
           </div>
         </div>
@@ -717,10 +718,14 @@ def render_demo_page() -> str:
       activeCourseId: null,
       activeCourse: null,
       questionState: {},
+      sessionId: null,
       sessionStartedAt: null,
       timerHandle: null,
-      lastResult: null
+      lastResult: null,
+      sessionClosed: false,
+      exitDeliveryInFlight: false
     };
+    const PENDING_EXIT_QUEUE_KEY = "et605_pending_exit_queue";
 
     const courseListEl = document.getElementById("courseList");
     const courseSelectEl = document.getElementById("courseSelect");
@@ -747,6 +752,57 @@ def render_demo_page() -> str:
       return items && items.length ? items.join(", ") : "None";
     }
 
+    function buildSessionId(studentId, chapterId) {
+      const safeStudent = (studentId || "student_live_demo")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "") || "student_live_demo";
+      const suffix = (self.crypto && self.crypto.randomUUID ? self.crypto.randomUUID() : String(Date.now()))
+        .replaceAll("-", "")
+        .slice(0, 8);
+      return `play_${safeStudent}_${chapterId}_${suffix}`;
+    }
+
+    function readPendingExitQueue() {
+      try {
+        const raw = localStorage.getItem(PENDING_EXIT_QUEUE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function writePendingExitQueue(queue) {
+      if (!queue.length) {
+        localStorage.removeItem(PENDING_EXIT_QUEUE_KEY);
+        return;
+      }
+      localStorage.setItem(PENDING_EXIT_QUEUE_KEY, JSON.stringify(queue.slice(-10)));
+    }
+
+    function upsertPendingExitPayload(payload) {
+      const queue = readPendingExitQueue().filter((item) => item.session_id !== payload.session_id);
+      queue.push(payload);
+      writePendingExitQueue(queue);
+    }
+
+    function removePendingExitPayload(sessionId) {
+      const queue = readPendingExitQueue().filter((item) => item.session_id !== sessionId);
+      writePendingExitQueue(queue);
+    }
+
+    function initializeDraftSession() {
+      if (!state.activeCourse) return;
+      state.sessionId = buildSessionId(studentIdEl.value, state.activeCourse.chapter_id);
+      state.sessionStartedAt = null;
+      state.sessionClosed = false;
+      state.exitDeliveryInFlight = false;
+      updateTimer();
+    }
+
     function syncSignalLabels() {
       confidenceLabelEl.textContent = `${confidenceLevelEl.value} / 5`;
       focusLabelEl.textContent = `${focusLevelEl.value} / 5`;
@@ -754,21 +810,14 @@ def render_demo_page() -> str:
 
     function derivedTimeSpentSeconds() {
       if (!state.activeCourse || !state.sessionStartedAt) return 0;
-      const elapsed = Math.max(10, Math.round((Date.now() - state.sessionStartedAt) / 1000));
-      let attempts = 0;
-      let retries = 0;
-      let hints = 0;
-      Object.values(state.questionState).forEach((item) => {
-        attempts += item.attempts > 0 && item.selectedOptionIndex !== null ? 1 : 0;
-        retries += Math.max(item.attempts - 1, 0);
-        hints += item.hintOpened ? 1 : 0;
-      });
-      const base = Math.round(state.activeCourse.expected_completion_time * (attempts / Math.max(state.activeCourse.questions.length, 1)));
-      return Math.max(elapsed, base + retries * 55 + hints * 35);
+      return Math.max(1, Math.round((Date.now() - state.sessionStartedAt) / 1000));
     }
 
     function updateTimer() {
-      sessionTimerEl.textContent = `Session time: ${derivedTimeSpentSeconds()}s`;
+      const elapsed = derivedTimeSpentSeconds();
+      sessionTimerEl.textContent = state.sessionStartedAt
+        ? `Session time: ${elapsed}s`
+        : "Session time: 0s (starts on first action)";
     }
 
     function startTimer() {
@@ -780,6 +829,37 @@ def render_demo_page() -> str:
     function stopTimer() {
       if (state.timerHandle) clearInterval(state.timerHandle);
       state.timerHandle = null;
+    }
+
+    function ensureSessionStarted() {
+      if (!state.sessionStartedAt) {
+        state.sessionStartedAt = Date.now();
+      }
+      updateTimer();
+    }
+
+    function hasOpenSession() {
+      return Boolean(state.activeCourse && state.sessionId && !state.sessionClosed);
+    }
+
+    async function flushPendingExitQueue() {
+      if (!navigator.onLine) return;
+      const queue = readPendingExitQueue();
+      for (const payload of queue) {
+        try {
+          const response = await fetch("/demo/session/exit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            keepalive: true
+          });
+          if (response.ok) {
+            removePendingExitPayload(payload.session_id);
+          }
+        } catch {
+          return;
+        }
+      }
     }
 
     function renderCourseCards() {
@@ -880,8 +960,10 @@ def render_demo_page() -> str:
     }
 
     function selectAnswer(questionId, optionIndex) {
+      if (state.sessionClosed) return;
       const courseQuestion = state.activeCourse.questions.find((question) => question.question_id === questionId);
       const local = state.questionState[questionId];
+      ensureSessionStarted();
       local.selectedOptionIndex = optionIndex;
       local.attempts += 1;
       local.lastCorrect = local.selectedOptionIndex === courseQuestion.correct_option_index;
@@ -896,6 +978,8 @@ def render_demo_page() -> str:
     }
 
     function openHint(questionId) {
+      if (state.sessionClosed) return;
+      ensureSessionStarted();
       state.questionState[questionId].hintOpened = true;
       renderChapter();
       updateTimer();
@@ -922,8 +1006,8 @@ def render_demo_page() -> str:
       state.activeCourseId = chapterId;
       state.activeCourse = data;
       state.questionState = createQuestionState(data);
-      state.sessionStartedAt = Date.now();
       state.lastResult = null;
+      initializeDraftSession();
       renderCourseCards();
       renderCourseSelect();
       renderChapter();
@@ -947,6 +1031,7 @@ def render_demo_page() -> str:
         studyModeEl.value = "guided";
         endedEarlyEl.checked = true;
         syncSignalLabels();
+        ensureSessionStarted();
         const ids = state.activeCourse.questions.map((question) => question.question_id);
         state.questionState[ids[0]].selectedOptionIndex = 0;
         state.questionState[ids[0]].attempts = 1;
@@ -977,6 +1062,7 @@ def render_demo_page() -> str:
         studyModeEl.value = "revision";
         endedEarlyEl.checked = false;
         syncSignalLabels();
+        ensureSessionStarted();
         const ids = state.activeCourse.questions.map((question) => question.question_id);
         state.questionState[ids[0]].selectedOptionIndex = state.activeCourse.questions[0].correct_option_index;
         state.questionState[ids[0]].attempts = 1;
@@ -1007,6 +1093,7 @@ def render_demo_page() -> str:
         studyModeEl.value = "independent";
         endedEarlyEl.checked = false;
         syncSignalLabels();
+        ensureSessionStarted();
         state.activeCourse.questions.forEach((question) => {
           const local = state.questionState[question.question_id];
           local.selectedOptionIndex = question.correct_option_index;
@@ -1020,15 +1107,17 @@ def render_demo_page() -> str:
       });
     }
 
-    function buildStudentSessionPayload() {
+    function buildStudentSessionPayload(forceEndedEarly = false) {
       return {
         student_id: studentIdEl.value.trim(),
+        session_id: state.sessionId,
         chapter_id: state.activeCourse.chapter_id,
+        session_started_at: state.sessionStartedAt ? new Date(state.sessionStartedAt).toISOString() : null,
         time_spent_seconds: derivedTimeSpentSeconds(),
         confidence_level: Number(confidenceLevelEl.value),
         focus_level: Number(focusLevelEl.value),
         study_mode: studyModeEl.value,
-        ended_early: endedEarlyEl.checked,
+        ended_early: forceEndedEarly || endedEarlyEl.checked,
         answers: state.activeCourse.questions.map((question) => {
           const local = state.questionState[question.question_id];
           return {
@@ -1078,6 +1167,49 @@ def render_demo_page() -> str:
       `;
     }
 
+    async function deliverExitSession({ useBeacon = false, silent = false } = {}) {
+      if (!hasOpenSession() || state.exitDeliveryInFlight) {
+        return false;
+      }
+
+      const sessionPayload = buildStudentSessionPayload(true);
+      upsertPendingExitPayload(sessionPayload);
+      state.exitDeliveryInFlight = true;
+      state.sessionClosed = true;
+      stopTimer();
+
+      if (useBeacon && navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(sessionPayload)], { type: "application/json" });
+        navigator.sendBeacon("/demo/session/exit", blob);
+        return true;
+      }
+
+      try {
+        const response = await fetch("/demo/session/exit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sessionPayload),
+          keepalive: true
+        });
+        if (response.ok) {
+          removePendingExitPayload(sessionPayload.session_id);
+          if (!silent) {
+            setStatus("Exited-midway session delivered successfully.", "ok");
+          }
+          return true;
+        }
+      } catch {
+        // Keep the payload queued locally for retry after reconnect.
+      } finally {
+        state.exitDeliveryInFlight = false;
+      }
+
+      if (!silent) {
+        setStatus("Session exit queued locally and will retry when the connection returns.", "error");
+      }
+      return false;
+    }
+
     function renderRecommendationOutcome(result) {
       const summary = result.admin_summary;
       recommendationOutcomeEl.innerHTML = `
@@ -1112,9 +1244,10 @@ def render_demo_page() -> str:
         return;
       }
 
+      ensureSessionStarted();
       setStatus("Ending the chapter and sending the final session-end payload...");
-      const sessionPayload = buildStudentSessionPayload();
-      const response = await fetch("/demo/student-session", {
+      const sessionPayload = buildStudentSessionPayload(false);
+      const response = await fetch("/demo/session/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sessionPayload)
@@ -1128,6 +1261,9 @@ def render_demo_page() -> str:
       }
 
       state.lastResult = data;
+      state.sessionClosed = true;
+      removePendingExitPayload(sessionPayload.session_id);
+      stopTimer();
       renderStudentOutcome(data);
       renderRecommendationOutcome(data);
       payloadOutputEl.textContent = JSON.stringify(data.team_api_submission, null, 2);
@@ -1137,8 +1273,8 @@ def render_demo_page() -> str:
     function resetCurrentChapter() {
       if (!state.activeCourse) return;
       state.questionState = createQuestionState(state.activeCourse);
-      state.sessionStartedAt = Date.now();
       state.lastResult = null;
+      initializeDraftSession();
       renderChapter();
       studentOutcomeEl.innerHTML = '<div class="empty">Solve the chapter questions and then end the chapter session.</div>';
       recommendationOutcomeEl.innerHTML = '<div class="empty">The Merge System recommendation will appear after submission.</div>';
@@ -1158,8 +1294,27 @@ def render_demo_page() -> str:
     courseSelectEl.addEventListener("change", (event) => selectCourse(event.target.value));
     confidenceLevelEl.addEventListener("input", syncSignalLabels);
     focusLevelEl.addEventListener("input", syncSignalLabels);
+    studentIdEl.addEventListener("change", () => {
+      if (state.activeCourse && !state.sessionStartedAt) {
+        state.sessionId = buildSessionId(studentIdEl.value, state.activeCourse.chapter_id);
+      }
+    });
+    window.addEventListener("online", flushPendingExitQueue);
+    window.addEventListener("offline", () => {
+      if (!hasOpenSession()) return;
+      upsertPendingExitPayload(buildStudentSessionPayload(true));
+      state.sessionClosed = true;
+      stopTimer();
+      setStatus("Network disconnected. The session was closed as exited midway and queued for retry.", "error");
+    });
+    window.addEventListener("pagehide", () => {
+      if (hasOpenSession()) {
+        deliverExitSession({ useBeacon: true, silent: true });
+      }
+    });
 
     syncSignalLabels();
+    flushPendingExitQueue();
     loadCourses();
   </script>
 </body>

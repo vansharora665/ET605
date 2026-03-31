@@ -74,7 +74,11 @@ def compute_performance_score(
         )
         applied_weights["retry_resilience"] = weights["retry_resilience"]
 
-    if chapter.expected_completion_time and interaction.time_spent is not None:
+    if (
+        chapter.expected_completion_time
+        and interaction.time_spent is not None
+        and attempted
+    ):
         components["time_efficiency"] = min(
             chapter.expected_completion_time / max(interaction.time_spent, 1),
             1.0,

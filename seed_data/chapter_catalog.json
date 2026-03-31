@@ -9,8 +9,8 @@
     "learning_goal": "Students should confidently compare and simplify fractions.",
     "difficulty": 0.35,
     "expected_completion_time": 780,
-    "question_count": 3,
-    "total_hints_embedded": 3,
+    "question_count": 5,
+    "total_hints_embedded": 5,
     "prerequisites": [],
     "next_chapter_id": "grade7_ratio_and_proportion",
     "subtopics": [
@@ -49,6 +49,22 @@
         "options": ["3/5", "2/3", "6/3", "1/9"],
         "correct_option_index": 1,
         "hint": "Divide numerator and denominator by their greatest common factor."
+      },
+      {
+        "question_id": "g6f_q4",
+        "subtopic_id": "grade6_fractions__comparing_fractions",
+        "prompt": "Which fraction is smallest?",
+        "options": ["3/4", "2/5", "5/6", "7/8"],
+        "correct_option_index": 1,
+        "hint": "Compare the fractions by converting to decimals or using common denominators."
+      },
+      {
+        "question_id": "g6f_q5",
+        "subtopic_id": "grade6_fractions__equivalent_fractions",
+        "prompt": "Which pair shows equivalent fractions?",
+        "options": ["1/3 and 2/5", "2/4 and 1/2", "3/5 and 4/7", "5/6 and 6/5"],
+        "correct_option_index": 1,
+        "hint": "Equivalent fractions name the same part of a whole."
       }
     ]
   },
@@ -62,8 +78,8 @@
     "learning_goal": "Students should connect fraction thinking to proportional reasoning.",
     "difficulty": 0.5,
     "expected_completion_time": 900,
-    "question_count": 3,
-    "total_hints_embedded": 3,
+    "question_count": 5,
+    "total_hints_embedded": 5,
     "prerequisites": [
       "grade6_fractions"
     ],
@@ -104,6 +120,22 @@
         "options": ["9 km", "10 km", "20 km", "25 km"],
         "correct_option_index": 2,
         "hint": "Multiply the map distance by the scale factor."
+      },
+      {
+        "question_id": "g7r_q4",
+        "subtopic_id": "grade7_ratio_and_proportion__simplifying_ratios",
+        "prompt": "Which ratio is equivalent to 4:6?",
+        "options": ["2:3", "3:4", "6:4", "8:10"],
+        "correct_option_index": 0,
+        "hint": "Reduce the ratio to its simplest form."
+      },
+      {
+        "question_id": "g7r_q5",
+        "subtopic_id": "grade7_ratio_and_proportion__word_problems",
+        "prompt": "If 2 pens cost Rs 18, how much do 7 pens cost?",
+        "options": ["Rs 54", "Rs 63", "Rs 72", "Rs 81"],
+        "correct_option_index": 1,
+        "hint": "Find the cost of one pen before scaling up."
       }
     ]
   },
@@ -117,8 +149,8 @@
     "learning_goal": "Students should identify terms and simplify basic algebraic expressions.",
     "difficulty": 0.58,
     "expected_completion_time": 960,
-    "question_count": 3,
-    "total_hints_embedded": 3,
+    "question_count": 5,
+    "total_hints_embedded": 5,
     "prerequisites": [
       "grade6_fractions",
       "grade7_ratio_and_proportion"
@@ -160,6 +192,22 @@
         "options": ["7 - n", "n - 7", "7n", "n + 7"],
         "correct_option_index": 1,
         "hint": "“Less than” means subtract from the number."
+      },
+      {
+        "question_id": "g7a_q4",
+        "subtopic_id": "grade7_algebraic_expressions__variables_and_constants",
+        "prompt": "Which expression has two terms?",
+        "options": ["4x", "3a + 2", "7", "x^2"],
+        "correct_option_index": 1,
+        "hint": "Terms are separated by plus or minus signs."
+      },
+      {
+        "question_id": "g7a_q5",
+        "subtopic_id": "grade7_algebraic_expressions__simplifying_expressions",
+        "prompt": "Simplify: 4y - y.",
+        "options": ["5y", "4", "3y", "y/4"],
+        "correct_option_index": 2,
+        "hint": "Subtract the coefficients of like terms."
       }
     ]
   },
@@ -173,8 +221,8 @@
     "learning_goal": "Students should solve basic linear equations accurately and independently.",
     "difficulty": 0.74,
     "expected_completion_time": 1200,
-    "question_count": 3,
-    "total_hints_embedded": 3,
+    "question_count": 5,
+    "total_hints_embedded": 5,
     "prerequisites": [
       "grade7_algebraic_expressions",
       "grade7_ratio_and_proportion"
@@ -216,6 +264,22 @@
         "options": ["3", "6", "9", "12"],
         "correct_option_index": 2,
         "hint": "Subtract 2 first, then multiply both sides by 3."
+      },
+      {
+        "question_id": "g8l_q4",
+        "subtopic_id": "grade8_linear_equations__solving_one_step_equations",
+        "prompt": "Solve: x - 4 = 9",
+        "options": ["5", "9", "13", "36"],
+        "correct_option_index": 2,
+        "hint": "Undo the subtraction by adding 4 to both sides."
+      },
+      {
+        "question_id": "g8l_q5",
+        "subtopic_id": "grade8_linear_equations__solving_multi_step_equations",
+        "prompt": "Solve: 3x + 6 = 21",
+        "options": ["3", "5", "7", "9"],
+        "correct_option_index": 1,
+        "hint": "Subtract 6 first, then divide by 3."
       }
     ]
   }

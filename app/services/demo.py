@@ -239,6 +239,7 @@ def submit_student_session(
     payload: StudentSessionSubmission,
     scoring_profile: str,
     threshold: float,
+    force_ended_early: bool = False,
 ) -> StudentSessionResponse:
     chapter = _get_demo_course(payload.chapter_id)
     questions_by_id = {question["question_id"]: question for question in chapter["questions"]}
@@ -306,27 +307,37 @@ def submit_student_session(
         if attempts > 1:
             metric["retry_count"] += attempts - 1
 
-    if questions_attempted == 0:
+    if questions_attempted == 0 and not (payload.ended_early or force_ended_early):
         raise ApiError(422, "At least one question must be attempted before ending the chapter session")
 
     total_questions = len(chapter["questions"])
     completion_ratio = round(questions_attempted / max(total_questions, 1), 2)
-    if payload.ended_early:
+    effective_ended_early = payload.ended_early or force_ended_early
+    if effective_ended_early:
         session_status = "exited_midway"
         completion_ratio = min(completion_ratio, 0.9)
     else:
         session_status = "completed" if questions_attempted == total_questions else "exited_midway"
 
     # Split the observed time equally across attempted questions for demo reporting.
-    time_per_attempted = int(payload.time_spent_seconds / max(questions_attempted, 1))
+    timestamp = datetime.now(timezone.utc)
+    if payload.session_started_at is not None:
+        started_at = payload.session_started_at
+        if started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=timezone.utc)
+        elapsed_seconds = max(0, int((timestamp - started_at).total_seconds()))
+        actual_time_spent = max(payload.time_spent_seconds, elapsed_seconds)
+    else:
+        actual_time_spent = payload.time_spent_seconds
+
+    time_per_attempted = int(actual_time_spent / max(questions_attempted, 1))
     for metric in subtopic_accumulator.values():
         metric["time_spent_seconds"] = metric["questions_attempted"] * time_per_attempted
 
-    timestamp = datetime.now(timezone.utc)
     merge_payload = {
         "schema_version": chapter["schema_version"],
         "student_id": payload.student_id,
-        "session_id": f"play_{payload.student_id}_{payload.chapter_id}_{uuid4().hex[:8]}",
+        "session_id": payload.session_id or f"play_{payload.student_id}_{payload.chapter_id}_{uuid4().hex[:8]}",
         "chapter_id": payload.chapter_id,
         "timestamp": timestamp.isoformat().replace("+00:00", "Z"),
         "session_status": session_status,
@@ -337,7 +348,7 @@ def submit_student_session(
         "hints_used": hints_used,
         "total_hints_embedded": chapter["total_hints_embedded"],
         "retry_count": retry_count,
-        "time_spent_seconds": payload.time_spent_seconds,
+        "time_spent_seconds": actual_time_spent,
         "topic_completion_ratio": completion_ratio,
         "subtopic_metrics": list(subtopic_accumulator.values()),
     }

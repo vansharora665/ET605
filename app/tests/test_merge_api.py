@@ -87,7 +87,8 @@ def test_root_returns_demo_page(client):
 
     assert response.status_code == 200
     assert "Student chapter experience + team API call + Merge System recommendation" in response.text
-    assert "/demo/student-session" in response.text
+    assert "/demo/session/complete" in response.text
+    assert "/demo/session/exit" in response.text
     assert "Best Demo Guide" in response.text
     assert "Open Engine Explainer" in response.text
 
@@ -98,7 +99,7 @@ def test_demo_course_detail_returns_questions(client):
     assert response.status_code == 200
     body = response.json()
     assert body["chapter_id"] == "grade8_linear_equations"
-    assert len(body["questions"]) == 3
+    assert len(body["questions"]) == 5
     assert body["questions"][0]["prompt"]
 
 
@@ -323,3 +324,58 @@ def test_engine_explanation_returns_step_by_step_breakdown(client):
     assert body["validation_checks"][0]["passed"] is True
     assert body["recommendation_parameters"]["struggle_index"] is not None
     assert "renormalizing the remaining weights" in body["normalized_score_summary"]
+
+
+def test_session_exit_allows_zero_attempt_payload_and_uses_exit_endpoint(client):
+    response = client.post(
+        "/demo/session/exit",
+        json={
+            "student_id": "student_auto_exit",
+            "session_id": "play_student_auto_exit_grade7_ratio_and_proportion_deadbeef",
+            "chapter_id": "grade7_ratio_and_proportion",
+            "session_started_at": "2026-03-31T11:00:00Z",
+            "time_spent_seconds": 0,
+            "confidence_level": 2,
+            "focus_level": 2,
+            "study_mode": "guided",
+            "ended_early": True,
+            "answers": [
+                {
+                    "question_id": "g7r_q1",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g7r_q2",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g7r_q3",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g7r_q4",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g7r_q5",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["team_api_submission"]["payload"]["session_status"] == "exited_midway"
+    assert body["team_api_submission"]["payload"]["questions_attempted"] == 0
+    assert body["team_api_submission"]["payload"]["time_spent_seconds"] > 0
