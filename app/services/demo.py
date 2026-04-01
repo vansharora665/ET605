@@ -412,8 +412,9 @@ def submit_student_session(
         "weak_subtopics": recommendation.weak_subtopics,
         "rationale": next_chapter.rationale,
         "normalization_summary": (
-            "The score is normalized to 0-1. Only available components are used, and their "
-            "weights are renormalized to sum to 1.0 before the final score is calculated."
+            "The score stays on a 0-1 scale. Standard base weights remain fixed when the "
+            "official fields are present, and only truly missing or null source fields trigger "
+            "weight renormalization."
         ),
     }
     observed_patterns = _observed_patterns(
