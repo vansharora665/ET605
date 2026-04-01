@@ -14,6 +14,7 @@ This project follows the user requirements and the revised Merge Team integratio
 - Optional `subtopic_metrics` support for weak-area recommendations
 - Four dummy chapter definitions in [`seed_data/chapter_catalog.json`](/Users/vansharora665/ET605/seed_data/chapter_catalog.json)
 - Three dummy external module examples under [`dummy_modules`](/Users/vansharora665/ET605/dummy_modules)
+- Presentation explainer in [`docs/MERGE_SYSTEM_EXPLANATION.md`](/Users/vansharora665/ET605/docs/MERGE_SYSTEM_EXPLANATION.md)
 
 ## Tech stack
 
@@ -258,18 +259,24 @@ The service supports two scoring profiles:
 Default `revised_spec` formula:
 
 ```text
-accuracy = correct_answers / questions_attempted
-hint_ratio = hints_used / total_hints_embedded
-retry_ratio = retry_count / questions_attempted
+mastery_ratio = correct_answers / total_questions
+attempt_coverage = questions_attempted / total_questions
+hint_independence = 1 - (hints_used / total_hints_embedded)
+retry_resilience = 1 - (retry_count / questions_attempted)
 time_efficiency = expected_completion_time / time_spent_seconds
 completion_ratio = topic_completion_ratio
+difficulty_progress = attempt_coverage x (1 - 0.5 x difficulty_factor)
+prerequisite_readiness = completion_ratio x (1 - 0.5 x prerequisite_factor)
 
 score =
-0.45 * accuracy +
-0.15 * (1 - hint_ratio) +
-0.15 * (1 - retry_ratio) +
-0.15 * time_efficiency +
-0.10 * completion_ratio
+0.30 * mastery_ratio +
+0.20 * attempt_coverage +
+0.10 * hint_independence +
+0.10 * retry_resilience +
+0.10 * time_efficiency +
+0.10 * completion_ratio +
+0.05 * difficulty_progress +
+0.05 * prerequisite_readiness
 ```
 
 When a metric is missing, that component is excluded and the remaining weights are renormalized to sum to `1.0`.

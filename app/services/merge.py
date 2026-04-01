@@ -15,7 +15,7 @@ from app.services.recommendation import (
     build_next_chapter_response,
     build_recommendation_response,
 )
-from app.services.scoring import compute_performance_score
+from app.services.scoring import compute_performance_score, difficulty_level_from_value
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,26 @@ def ingest_interaction(
     chapter = db.get(Chapter, payload.chapter_id)
     if chapter is None:
         raise ApiError(404, f"Unknown chapter_id '{payload.chapter_id}'")
+
+    expected_level = difficulty_level_from_value(chapter.difficulty)
+    if payload.chapter_difficulty_level is not None and payload.chapter_difficulty_level != expected_level:
+        raise ApiError(
+            422,
+            f"chapter_difficulty_level '{payload.chapter_difficulty_level}' does not match configured chapter difficulty '{expected_level}'",
+        )
+    if (
+        payload.expected_completion_time_seconds is not None
+        and payload.expected_completion_time_seconds != chapter.expected_completion_time
+    ):
+        raise ApiError(
+            422,
+            "expected_completion_time_seconds does not match the configured chapter metadata",
+        )
+    if payload.prerequisite_chapter_ids is not None and payload.prerequisite_chapter_ids != (chapter.prerequisites or []):
+        raise ApiError(
+            422,
+            "prerequisite_chapter_ids does not match the configured chapter metadata",
+        )
 
     session = db.get(StudentSession, payload.session_id)
     created = False

@@ -16,11 +16,14 @@ SCORING_PROFILES = {
         "time_efficiency": 0.10,
     },
     "revised_spec": {
-        "accuracy": 0.45,
-        "hint_independence": 0.15,
-        "retry_resilience": 0.15,
-        "time_efficiency": 0.15,
+        "mastery_ratio": 0.30,
+        "attempt_coverage": 0.20,
+        "hint_independence": 0.10,
+        "retry_resilience": 0.10,
+        "time_efficiency": 0.10,
         "completion_ratio": 0.10,
+        "difficulty_progress": 0.05,
+        "prerequisite_readiness": 0.05,
     },
 }
 
@@ -42,6 +45,16 @@ def _resolve_questions_attempted(interaction: Interaction) -> Optional[int]:
     return (interaction.correct_answers or 0) + (interaction.wrong_answers or 0)
 
 
+def difficulty_level_from_value(difficulty: float | None) -> str:
+    if difficulty is None:
+        return "mid"
+    if difficulty < 0.45:
+        return "easy"
+    if difficulty < 0.7:
+        return "mid"
+    return "hard"
+
+
 def compute_performance_score(
     chapter: Chapter,
     session: StudentSession,
@@ -52,10 +65,21 @@ def compute_performance_score(
     attempted = _resolve_questions_attempted(interaction)
     components: dict[str, float] = {}
     applied_weights: dict[str, float] = {}
+    total_questions = interaction.total_questions
+    completion_ratio = session.completion_ratio
+    prerequisite_factor = min(len(chapter.prerequisites or []) / 3, 1.0)
 
-    if attempted and interaction.correct_answers is not None:
+    if "accuracy" in weights and attempted and interaction.correct_answers is not None:
         components["accuracy"] = interaction.correct_answers / max(attempted, 1)
         applied_weights["accuracy"] = weights["accuracy"]
+
+    if "mastery_ratio" in weights and total_questions and interaction.correct_answers is not None:
+        components["mastery_ratio"] = interaction.correct_answers / max(total_questions, 1)
+        applied_weights["mastery_ratio"] = weights["mastery_ratio"]
+
+    if "attempt_coverage" in weights and attempted is not None and total_questions:
+        components["attempt_coverage"] = min(attempted / max(total_questions, 1), 1.0)
+        applied_weights["attempt_coverage"] = weights["attempt_coverage"]
 
     if (
         interaction.hints_used is not None
@@ -91,10 +115,26 @@ def compute_performance_score(
 
     if (
         "completion_ratio" in weights
-        and session.completion_ratio is not None
+        and completion_ratio is not None
     ):
-        components["completion_ratio"] = session.completion_ratio
+        components["completion_ratio"] = completion_ratio
         applied_weights["completion_ratio"] = weights["completion_ratio"]
+
+    if (
+        "difficulty_progress" in weights
+        and total_questions
+        and attempted is not None
+    ):
+        attempt_coverage = min(attempted / max(total_questions, 1), 1.0)
+        components["difficulty_progress"] = attempt_coverage * (1 - 0.5 * chapter.difficulty)
+        applied_weights["difficulty_progress"] = weights["difficulty_progress"]
+
+    if (
+        "prerequisite_readiness" in weights
+        and completion_ratio is not None
+    ):
+        components["prerequisite_readiness"] = completion_ratio * (1 - 0.5 * prerequisite_factor)
+        applied_weights["prerequisite_readiness"] = weights["prerequisite_readiness"]
 
     total_weight = sum(applied_weights.values())
     if total_weight == 0:

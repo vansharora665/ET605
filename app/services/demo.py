@@ -31,7 +31,7 @@ from app.schemas.student_flow import (
 from app.services.catalog import load_catalog
 from app.services.merge import get_recommendation, ingest_interaction, predict_next_chapter
 from app.services.recommendation import build_recommendation_parameters
-from app.services.scoring import compute_performance_score
+from app.services.scoring import compute_performance_score, difficulty_level_from_value
 
 
 def _performance_band(score: float | None) -> str:
@@ -186,6 +186,9 @@ def submit_demo_progress(
         retry_count=payload.retry_count,
         time_spent_seconds=payload.time_spent_seconds,
         topic_completion_ratio=payload.topic_completion_ratio,
+        chapter_difficulty_level=difficulty_level_from_value(chapter["difficulty"]),
+        expected_completion_time_seconds=chapter["expected_completion_time"],
+        prerequisite_chapter_ids=chapter["prerequisites"],
         subtopic_metrics=None,
     )
 
@@ -350,6 +353,9 @@ def submit_student_session(
         "retry_count": retry_count,
         "time_spent_seconds": actual_time_spent,
         "topic_completion_ratio": completion_ratio,
+        "chapter_difficulty_level": difficulty_level_from_value(chapter["difficulty"]),
+        "expected_completion_time_seconds": chapter["expected_completion_time"],
+        "prerequisite_chapter_ids": chapter["prerequisites"],
         "subtopic_metrics": list(subtopic_accumulator.values()),
     }
 
@@ -441,11 +447,14 @@ def submit_student_session(
                 contribution=round(score_result.component_contributions.get(name), 4) if score_result.component_contributions.get(name) is not None else None,
             )
             for name in [
-                "accuracy",
+                "mastery_ratio",
+                "attempt_coverage",
                 "hint_independence",
                 "retry_resilience",
                 "time_efficiency",
                 "completion_ratio",
+                "difficulty_progress",
+                "prerequisite_readiness",
             ]
         ],
         normalized_score_explanation=NormalizedScoreExplanation(

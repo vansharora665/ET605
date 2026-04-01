@@ -8,6 +8,7 @@ from app.models.student_session import StudentSession
 from app.schemas.pathway import NextChapterResponse
 from app.schemas.recommendation import RecommendationResponse
 from app.services.catalog import get_catalog_map, get_starting_chapter
+from app.services.scoring import difficulty_level_from_value
 
 
 def build_recommendation_parameters(
@@ -19,6 +20,10 @@ def build_recommendation_parameters(
     attempted = interaction.questions_attempted
     if attempted is None:
         attempted = (interaction.correct_answers or 0) + (interaction.wrong_answers or 0)
+    total_questions = interaction.total_questions
+    attempt_coverage = None
+    if attempted is not None and total_questions:
+        attempt_coverage = min(attempted / max(total_questions, 1), 1.0)
 
     accuracy = None
     if attempted and interaction.correct_answers is not None:
@@ -45,6 +50,8 @@ def build_recommendation_parameters(
 
     completion_strength = session.completion_ratio
     completion_gap = None if completion_strength is None else 1 - completion_strength
+    prerequisite_count = len(chapter.prerequisites or [])
+    prerequisite_factor = min(prerequisite_count / 3, 1.0)
 
     weak_subtopics = extract_weak_subtopics(chapter, interaction, threshold)
     weak_subtopic_ratio = 0.0
@@ -74,13 +81,19 @@ def build_recommendation_parameters(
 
     return {
         "accuracy": round(accuracy, 4) if accuracy is not None else None,
+        "attempt_coverage": round(attempt_coverage, 4) if attempt_coverage is not None else None,
         "hint_dependency": round(hint_dependency, 4) if hint_dependency is not None else None,
         "retry_pressure": round(retry_pressure, 4) if retry_pressure is not None else None,
         "time_efficiency": round(time_efficiency, 4) if time_efficiency is not None else None,
         "time_pressure": round(time_pressure, 4) if time_pressure is not None else None,
         "completion_strength": round(completion_strength, 4) if completion_strength is not None else None,
         "completion_gap": round(completion_gap, 4) if completion_gap is not None else None,
+        "difficulty_level": difficulty_level_from_value(chapter.difficulty),
         "difficulty_factor": round(chapter.difficulty, 4),
+        "expected_completion_time_seconds": chapter.expected_completion_time,
+        "prerequisite_count": prerequisite_count,
+        "prerequisite_factor": round(prerequisite_factor, 4),
+        "prerequisite_chapter_ids": chapter.prerequisites or [],
         "weak_subtopic_ratio": round(weak_subtopic_ratio, 4),
         "score_gap": round(score_gap, 4) if score_gap is not None else None,
         "struggle_index": round(struggle_index, 4) if struggle_index is not None else None,

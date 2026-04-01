@@ -13,7 +13,7 @@ from app.schemas.explanation import (
 )
 from app.services.merge import get_recommendation
 from app.services.recommendation import build_next_chapter_response, build_recommendation_parameters
-from app.services.scoring import compute_performance_score
+from app.services.scoring import compute_performance_score, difficulty_level_from_value
 
 
 def _build_payload(session: StudentSession) -> dict:
@@ -33,6 +33,9 @@ def _build_payload(session: StudentSession) -> dict:
         "total_hints_embedded": interaction.total_hints,
         "time_spent_seconds": interaction.time_spent,
         "topic_completion_ratio": session.completion_ratio,
+        "chapter_difficulty_level": difficulty_level_from_value(session.chapter.difficulty),
+        "expected_completion_time_seconds": session.chapter.expected_completion_time,
+        "prerequisite_chapter_ids": session.chapter.prerequisites,
         "subtopic_metrics": interaction.subtopic_metrics,
     }
 
@@ -132,14 +135,24 @@ def get_engine_explanation(
     )
 
     attempted = session.interaction.questions_attempted or 0
+    total_questions = session.interaction.total_questions or 0
+    prerequisite_factor = min(len(session.chapter.prerequisites or []) / 3, 1.0)
     score_steps = [
         ScoreStep(
-            name="accuracy",
-            formula=f"{session.interaction.correct_answers or 0} / max({attempted}, 1)",
-            value=score_result.component_scores.get("accuracy"),
-            weight=score_result.component_weights.get("accuracy"),
-            contribution=score_result.component_contributions.get("accuracy"),
-            included="accuracy" in score_result.component_scores,
+            name="mastery_ratio",
+            formula=f"{session.interaction.correct_answers or 0} / max({total_questions}, 1)",
+            value=score_result.component_scores.get("mastery_ratio"),
+            weight=score_result.component_weights.get("mastery_ratio"),
+            contribution=score_result.component_contributions.get("mastery_ratio"),
+            included="mastery_ratio" in score_result.component_scores,
+        ),
+        ScoreStep(
+            name="attempt_coverage",
+            formula=f"{attempted} / max({total_questions}, 1)",
+            value=score_result.component_scores.get("attempt_coverage"),
+            weight=score_result.component_weights.get("attempt_coverage"),
+            contribution=score_result.component_contributions.get("attempt_coverage"),
+            included="attempt_coverage" in score_result.component_scores,
         ),
         ScoreStep(
             name="hint_independence",
@@ -172,6 +185,22 @@ def get_engine_explanation(
             weight=score_result.component_weights.get("completion_ratio"),
             contribution=score_result.component_contributions.get("completion_ratio"),
             included="completion_ratio" in score_result.component_scores,
+        ),
+        ScoreStep(
+            name="difficulty_progress",
+            formula=f"attempt_coverage x (1 - 0.5 x {session.chapter.difficulty})",
+            value=score_result.component_scores.get("difficulty_progress"),
+            weight=score_result.component_weights.get("difficulty_progress"),
+            contribution=score_result.component_contributions.get("difficulty_progress"),
+            included="difficulty_progress" in score_result.component_scores,
+        ),
+        ScoreStep(
+            name="prerequisite_readiness",
+            formula=f"{session.completion_ratio} x (1 - 0.5 x {prerequisite_factor})",
+            value=score_result.component_scores.get("prerequisite_readiness"),
+            weight=score_result.component_weights.get("prerequisite_readiness"),
+            contribution=score_result.component_contributions.get("prerequisite_readiness"),
+            included="prerequisite_readiness" in score_result.component_scores,
         ),
     ]
 

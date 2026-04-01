@@ -49,6 +49,9 @@ class InteractionIn(BaseModel):
     retry_count: Optional[int] = Field(default=None, ge=0)
     time_spent_seconds: Optional[int] = Field(default=None, ge=0)
     topic_completion_ratio: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    chapter_difficulty_level: Optional[Literal["easy", "mid", "hard"]] = None
+    expected_completion_time_seconds: Optional[int] = Field(default=None, ge=0)
+    prerequisite_chapter_ids: Optional[List[str]] = None
     subtopic_metrics: Optional[List[SubtopicMetricPayload]] = None
 
     @model_validator(mode="after")

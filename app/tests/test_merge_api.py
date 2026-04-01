@@ -318,12 +318,69 @@ def test_engine_explanation_returns_step_by_step_breakdown(client):
     assert response.status_code == 200
     body = response.json()
     assert body["payload"]["session_status"] == "exited_midway"
-    assert body["score_steps"][0]["name"] == "accuracy"
+    assert body["score_steps"][0]["name"] == "mastery_ratio"
     assert body["decision_type"] == "remediation"
     assert body["next_chapter_id"] == "grade7_algebraic_expressions"
     assert body["validation_checks"][0]["passed"] is True
     assert body["recommendation_parameters"]["struggle_index"] is not None
     assert "renormalizing the remaining weights" in body["normalized_score_summary"]
+
+
+def test_single_correct_attempt_does_not_create_an_artificially_high_score(client):
+    response = client.post(
+        "/demo/session/complete",
+        json={
+            "student_id": "student_low_coverage",
+            "chapter_id": "grade8_linear_equations",
+            "time_spent_seconds": 120,
+            "confidence_level": 4,
+            "focus_level": 4,
+            "study_mode": "independent",
+            "ended_early": False,
+            "answers": [
+                {
+                    "question_id": "g8l_q1",
+                    "selected_option_index": 2,
+                    "attempts": 1,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g8l_q2",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g8l_q3",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g8l_q4",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                },
+                {
+                    "question_id": "g8l_q5",
+                    "selected_option_index": None,
+                    "attempts": 0,
+                    "hint_opened": False
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["performance_score"] < 0.6
+    assert body["team_api_submission"]["payload"]["chapter_difficulty_level"] == "hard"
+    assert body["team_api_submission"]["payload"]["expected_completion_time_seconds"] == 1200
+    assert body["team_api_submission"]["payload"]["prerequisite_chapter_ids"] == [
+        "grade7_algebraic_expressions",
+        "grade7_ratio_and_proportion",
+    ]
 
 
 def test_session_exit_allows_zero_attempt_payload_and_uses_exit_endpoint(client):
