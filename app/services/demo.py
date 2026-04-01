@@ -460,9 +460,9 @@ def submit_student_session(
         normalized_score_explanation=NormalizedScoreExplanation(
             formula="normalized_score = sum(component_value x normalized_weight)",
             summary=(
-                "We first compute each score component, drop any missing component, "
-                "renormalize the remaining weights so they sum to 1.0, then add the "
-                "weighted contributions to keep the final score within 0 and 1."
+                "We keep the standard base weights fixed whenever the official fields are present. "
+                "Only if a raw field is actually missing or null do we exclude that component and "
+                "renormalize the remaining weights so they still sum to 1.0."
             ),
             weights_sum=round(sum(score_result.component_weights.values()), 4),
         ),

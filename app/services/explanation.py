@@ -241,8 +241,9 @@ def get_engine_explanation(
         score_steps=score_steps,
         final_score=score_result.score,
         normalized_score_summary=(
-            "The final score is normalized to 0-1 by excluding missing components and "
-            "renormalizing the remaining weights so they sum to exactly 1.0."
+            "The final score stays on a 0-1 scale by keeping standard weights fixed when the "
+            "official fields are present. Only truly missing or null source fields cause a "
+            "component to be excluded and the remaining weights to be renormalized to 1.0."
         ),
         recommendation_parameters=recommendation_parameters,
         decision_steps=decision_steps,

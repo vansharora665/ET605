@@ -273,6 +273,10 @@ def test_student_session_submission_returns_team_payload_and_recommendation(clie
     assert body["next_chapter_id"] == "grade7_algebraic_expressions"
     assert body["performance_band"] == "intensive_support"
     assert body["normalized_score_explanation"]["weights_sum"] == 1.0
+    breakdown = {item["name"]: item for item in body["score_breakdown"]}
+    assert breakdown["mastery_ratio"]["normalized_weight"] == 0.3
+    assert breakdown["attempt_coverage"]["normalized_weight"] == 0.2
+    assert breakdown["hint_independence"]["normalized_weight"] == 0.1
     assert body["recommendation_parameters"]["struggle_index"] is not None
     assert body["recommendation_parameters"]["readiness_index"] is not None
     assert "low_confidence" in body["observed_patterns"]
@@ -323,7 +327,7 @@ def test_engine_explanation_returns_step_by_step_breakdown(client):
     assert body["next_chapter_id"] == "grade7_algebraic_expressions"
     assert body["validation_checks"][0]["passed"] is True
     assert body["recommendation_parameters"]["struggle_index"] is not None
-    assert "renormalizing the remaining weights" in body["normalized_score_summary"]
+    assert "keeping standard weights fixed" in body["normalized_score_summary"]
 
 
 def test_single_correct_attempt_does_not_create_an_artificially_high_score(client):
@@ -433,7 +437,9 @@ def test_session_exit_allows_zero_attempt_payload_and_uses_exit_endpoint(client)
 
     assert response.status_code == 200
     body = response.json()
-    assert body["performance_score"] == 0.0
+    assert body["performance_score"] is not None
+    assert body["performance_score"] < 0.05
+    assert body["normalized_score_explanation"]["weights_sum"] == 1.0
     assert body["team_api_submission"]["payload"]["session_status"] == "exited_midway"
     assert body["team_api_submission"]["payload"]["questions_attempted"] == 0
     assert body["team_api_submission"]["payload"]["time_spent_seconds"] > 0

@@ -279,7 +279,7 @@ score =
 0.05 * prerequisite_readiness
 ```
 
-When a metric is missing, that component is excluded and the remaining weights are renormalized to sum to `1.0`.
+When the official source fields are present, the base weights stay fixed. Only truly missing or `NULL` source fields cause a component to be excluded and the remaining weights to be renormalized to sum to `1.0`.
 
 ## Validation rules covered
 

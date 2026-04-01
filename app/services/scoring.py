@@ -68,6 +68,7 @@ def compute_performance_score(
     total_questions = interaction.total_questions
     completion_ratio = session.completion_ratio
     prerequisite_factor = min(len(chapter.prerequisites or []) / 3, 1.0)
+    inactive_exit_session = session.session_status == "exited_midway" and (attempted or 0) == 0
 
     if "accuracy" in weights and attempted and interaction.correct_answers is not None:
         components["accuracy"] = interaction.correct_answers / max(attempted, 1)
@@ -82,11 +83,13 @@ def compute_performance_score(
         applied_weights["attempt_coverage"] = weights["attempt_coverage"]
 
     if (
-        interaction.hints_used is not None
+        "hint_independence" in weights
+        and interaction.hints_used is not None
         and interaction.total_hints is not None
-        and attempted
     ):
-        if interaction.total_hints == 0:
+        if inactive_exit_session:
+            components["hint_independence"] = 0.0
+        elif interaction.total_hints == 0:
             components["hint_independence"] = 1.0
         else:
             components["hint_independence"] = 1 - min(
@@ -95,17 +98,22 @@ def compute_performance_score(
             )
         applied_weights["hint_independence"] = weights["hint_independence"]
 
-    if attempted and interaction.retry_count is not None:
-        components["retry_resilience"] = 1 - min(
-            interaction.retry_count / max(attempted, 1),
-            1.0,
-        )
-        applied_weights["retry_resilience"] = weights["retry_resilience"]
+    if "retry_resilience" in weights and interaction.retry_count is not None:
+        if inactive_exit_session:
+            components["retry_resilience"] = 0.0
+            applied_weights["retry_resilience"] = weights["retry_resilience"]
+        elif attempted:
+            components["retry_resilience"] = 1 - min(
+                interaction.retry_count / max(attempted, 1),
+                1.0,
+            )
+            applied_weights["retry_resilience"] = weights["retry_resilience"]
 
     if (
+        "time_efficiency" in weights
+        and
         chapter.expected_completion_time
         and interaction.time_spent is not None
-        and attempted
     ):
         components["time_efficiency"] = min(
             chapter.expected_completion_time / max(interaction.time_spent, 1),
@@ -136,8 +144,7 @@ def compute_performance_score(
         components["prerequisite_readiness"] = completion_ratio * (1 - 0.5 * prerequisite_factor)
         applied_weights["prerequisite_readiness"] = weights["prerequisite_readiness"]
 
-    total_weight = sum(applied_weights.values())
-    if total_weight == 0:
+    if not applied_weights:
         return ScoreResult(
             score=None,
             component_scores=components,
@@ -146,13 +153,14 @@ def compute_performance_score(
             profile=profile,
         )
 
-    normalized_weights = {
-        name: applied_weights[name] / total_weight
-        for name in components
+    total_applied_weight = sum(applied_weights.values())
+    fixed_weights = {
+        name: weight / total_applied_weight
+        for name, weight in applied_weights.items()
     }
     contributions = {
-        name: components[name] * normalized_weights[name]
-        for name in components
+        name: components.get(name, 0.0) * fixed_weights[name]
+        for name in fixed_weights
     }
 
     score = sum(contributions.values())
@@ -160,7 +168,7 @@ def compute_performance_score(
     return ScoreResult(
         score=round(max(0.0, min(score, 1.0)), 4),
         component_scores=components,
-        component_weights=normalized_weights,
+        component_weights=fixed_weights,
         component_contributions=contributions,
         profile=profile,
     )

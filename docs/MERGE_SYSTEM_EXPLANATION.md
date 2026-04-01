@@ -339,6 +339,14 @@ The output is always between `0` and `1`.
 
 This is one of the most important ideas in the project.
 
+Our rule is:
+
+1. keep the standard base weights fixed whenever the official source fields are present
+2. do not treat a valid calculated value as "missing"
+3. only renormalize if a raw source field is actually missing or null
+
+So in the demo, because the official fields are normally present, the weights remain consistent across sessions.
+
 Sometimes a payload may not have every metric.
 
 Example:
@@ -347,10 +355,11 @@ Example:
 
 Instead of breaking the score, we do this:
 
-1. compute every component that is available
-2. drop missing components
-3. renormalize the remaining weights so they add up to `1.0`
-4. calculate the final score using only the available components
+1. compute every component that can be calculated from the raw payload
+2. keep the standard base weights if those fields are present
+3. only when a raw field is truly missing, exclude that component
+4. renormalize the remaining weights so they add up to `1.0`
+5. calculate the final score using the available components
 
 ### Normalization formula
 
